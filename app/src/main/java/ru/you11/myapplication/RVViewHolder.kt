@@ -11,16 +11,13 @@ class RVViewHolder(override val containerView: View): RecyclerView.ViewHolder(co
 
     fun bind(item: RVClass, shouldAddTopPadding: Boolean = false, shouldAddBottomPadding: Boolean = false) {
         containerView.rv_item_name.text = item.name
-//        containerView.setPadding(0, 0, 0, 0)
+        val topPadding = if (shouldAddTopPadding) 200 else containerView.paddingTop
+        val bottomPadding = if (shouldAddBottomPadding) 200 else containerView.paddingBottom
 
-        if (shouldAddTopPadding) {
-            Log.d("RVVIEWHOLDER", "top, pos = $adapterPosition")
-            containerView.setPadding(0, 200, 0, 0)
-        }
+        Log.d("meow", "$adapterPosition")
+        Log.d("meow padding", "top = $topPadding, bottom = $bottomPadding")
+        Log.d("meow should", "top = $shouldAddTopPadding, bottom = $shouldAddBottomPadding")
 
-        if (shouldAddBottomPadding) {
-            Log.d("RVVIEWHOLDER", "bottom, pos = $adapterPosition")
-            containerView.setPadding(0, 0, 0, 200)
-        }
+        containerView.setPadding(containerView.paddingLeft, topPadding, containerView.paddingRight, bottomPadding)
     }
 }

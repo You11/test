@@ -36,7 +36,7 @@ class ListRVFragment: Fragment() {
 
     private fun getTestData(): ArrayList<RVClass> {
         val data = ArrayList<RVClass>()
-        for (el in 1..20) {
+        for (el in 1..100) {
             data.add(RVClass((el * 11111).toString()))
         }
         return data
