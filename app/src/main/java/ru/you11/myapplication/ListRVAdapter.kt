@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class ListRVAdapter: RecyclerView.Adapter<RVViewHolder>() {
 
+    private var selectedPosition = 0
     val items = ArrayList<RVClass>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RVViewHolder {
@@ -19,11 +20,7 @@ class ListRVAdapter: RecyclerView.Adapter<RVViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: RVViewHolder, position: Int) {
-        val shouldAddTopPadding = position == 0
-
-        val shouldAddBottomPadding = position == items.size - 1
-
-        holder.bind(items[position], shouldAddTopPadding = shouldAddTopPadding, shouldAddBottomPadding = shouldAddBottomPadding)
+        holder.bind(items[position], selectedPosition == position)
     }
 
     override fun getItemCount() = items.size
@@ -32,5 +29,12 @@ class ListRVAdapter: RecyclerView.Adapter<RVViewHolder>() {
         items.clear()
         items.addAll(newData)
         notifyDataSetChanged()
+    }
+
+    fun setSelected(position: Int) {
+        if (position == selectedPosition) return
+        notifyItemChanged(selectedPosition)
+        notifyItemChanged(position)
+        selectedPosition = position
     }
 }
