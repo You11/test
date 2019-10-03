@@ -1,13 +1,14 @@
 package ru.you11.myapplication
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.*
-import android.widget.Toast
+import android.view.animation.AccelerateInterpolator
 import androidx.core.view.get
-import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.SimpleItemAnimator
@@ -16,13 +17,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 class ListRVFragment : Fragment() {
 
-    private var handler = Handler(Looper.getMainLooper())
-    private var runnable: Runnable? = null
+    //used for scrolling position detection
+    private var firstElementHalfHeight = 0
 
-    private var scrollState = ScrollState.IDLE
+    private val animators = AnimatorSet()
+
+    private val handler = Handler(Looper.getMainLooper())
+    private var runnable: Runnable? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,59 +52,48 @@ class ListRVFragment : Fragment() {
             ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 list_rv.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                val r = Rect()
-                list_rv.getWindowVisibleDisplayFrame(r)
+                val rvRect = Rect()
+                list_rv.getWindowVisibleDisplayFrame(rvRect)
+
+                firstElementHalfHeight = list_rv[0].height / 2
 
                 val lpTop = list_top_space_view.layoutParams
-                lpTop.height = (r.height() - list_rv[0].height) / 2 - list_some_first_view.height
+                lpTop.height = (rvRect.height() - list_rv[0].height) / 2 - list_some_first_view.height
                 list_top_space_view.layoutParams = lpTop
 
                 val lpBottom = list_bottom_space_view.layoutParams
-                lpBottom.height = (r.height() - list_rv[0].height) / 2 - list_some_last_view.height
+                lpBottom.height = (rvRect.height() - list_rv[0].height) / 2 - list_some_last_view.height
                 list_bottom_space_view.layoutParams = lpBottom
+
+                animators.interpolator = AccelerateInterpolator()
             }
         })
 
         (list_rv.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
 
         list_scroll.setOnScrollChangeListener { v: View?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int ->
-            val childView = list_rv.findChildViewUnder(0.0f, scrollY.toFloat())
+            val childView = list_rv.findChildViewUnder(0.0f, scrollY.toFloat() + firstElementHalfHeight)
             if (childView != null) {
                 val pos = list_rv.getChildAdapterPosition(childView)
-
-                if ((scrollY % childView.height + childView.height / 2) > childView.height) {
-                    adapter.setSelected(pos + 1)
-                } else {
-                    adapter.setSelected(pos)
-                }
+                adapter.setSelected(pos)
             }
         }
 
         list_start_moving_button.setOnClickListener {
-            GlobalScope.launch(Dispatchers.Main) {
-                moveWithDelay(1)
-                moveWithDelay(3)
-                moveWithDelay(5)
-                moveWithDelay(10)
-                moveWithDelay(0)
-                moveWithDelay(2)
-                moveWithDelay(99)
-                moveWithDelay(50)
-                moveWithDelay(97)
-                moveWithDelay(40)
-                moveWithDelay(43)
-            }
+            startMovingAroundList()
         }
 
         list_scroll_up_button.setOnTouchListener { _, motionEvent ->
             when (motionEvent.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    startScrolling(true)
+                    startScroll(true)
                     true
                 }
 
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacksAndMessages(null)
+                    animators.cancel()
+                    centerCurrentlySelectedElement()
                     true
                 }
 
@@ -109,18 +104,59 @@ class ListRVFragment : Fragment() {
         list_scroll_down_button.setOnTouchListener { _, motionEvent ->
             when (motionEvent.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    startScrolling(false)
+                    startScroll(false)
                     true
                 }
 
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacksAndMessages(null)
+                    animators.cancel()
+                    centerCurrentlySelectedElement()
                     true
                 }
 
                 else -> false
             }
         }
+    }
+
+    private fun startScroll(isScrollUp: Boolean) {
+        runnable = Runnable {
+            if (isScrollUp) {
+                setYAnim(true)
+            } else {
+                setYAnim(false)
+            }
+
+            animators.start()
+        }
+
+        val adapter = list_rv.adapter as ListRVAdapter
+
+        val pos = if (isScrollUp) {
+            adapter.selectedPosition - 1
+        } else {
+            adapter.selectedPosition + 1
+        }
+
+        smoothScrollToPositionCenter(pos)
+        handler.postDelayed(runnable, 500L)
+    }
+
+    private fun setYAnim(isUp: Boolean) {
+        val scrollValue = if (isUp) 0 else list_rv.height
+        animators.duration = calculateDuration(list_scroll.scrollY, scrollValue)
+        val yAnim = ObjectAnimator.ofInt(list_scroll, "scrollY", list_scroll.scrollY, scrollValue)
+        animators.play(yAnim)
+    }
+
+    private fun centerCurrentlySelectedElement() {
+        val adapter = list_rv.adapter as ListRVAdapter
+        smoothScrollToPositionCenter(adapter.selectedPosition)
+    }
+
+    private fun calculateDuration(currentScroll: Int, destination: Int): Long {
+        return (sqrt(abs(currentScroll - destination).toDouble()) * 50).toLong()
     }
 
     private suspend fun moveWithDelay(position: Int) {
@@ -144,31 +180,19 @@ class ListRVFragment : Fragment() {
         return data
     }
 
-    private fun startScrolling(toTop: Boolean) {
-        val adapter = list_rv.adapter as ListRVAdapter
-
-        val maxScrollDistance = 50
-        var scrollDistance = 10
-
-        if (toTop) {
-            smoothScrollToPositionCenter(adapter.selectedPosition - 1)
-        } else {
-            smoothScrollToPositionCenter(adapter.selectedPosition + 1)
+    private fun startMovingAroundList() {
+        GlobalScope.launch(Dispatchers.Main) {
+            moveWithDelay(1)
+            moveWithDelay(3)
+            moveWithDelay(5)
+            moveWithDelay(10)
+            moveWithDelay(0)
+            moveWithDelay(2)
+            moveWithDelay(99)
+            moveWithDelay(50)
+            moveWithDelay(97)
+            moveWithDelay(40)
+            moveWithDelay(43)
         }
-
-        scrollState = ScrollState.SHORT
-
-        runnable = Runnable {
-            if (toTop) {
-                list_scroll.smoothScrollBy(0, -scrollDistance)
-            } else {
-                list_scroll.smoothScrollBy(0, scrollDistance)
-            }
-            scrollState = ScrollState.LONG
-            if (scrollDistance < maxScrollDistance) scrollDistance += 2
-            handler.postDelayed(runnable, 100)
-        }
-
-        handler.postDelayed(runnable, 500L)
     }
 }

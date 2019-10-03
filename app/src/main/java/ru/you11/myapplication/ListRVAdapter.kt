@@ -3,6 +3,7 @@ package ru.you11.myapplication
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.random.Random
 
 class ListRVAdapter: RecyclerView.Adapter<RVViewHolder>() {
 
@@ -13,13 +14,24 @@ class ListRVAdapter: RecyclerView.Adapter<RVViewHolder>() {
     val items = ArrayList<RVClass>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RVViewHolder {
-        return RVViewHolder(
-            LayoutInflater.from(parent.context).inflate(
-                R.layout.item_rv,
-                parent,
-                false
-            )
-        )
+
+        val rand = Random.nextBoolean()
+
+        return if (rand) {
+            RVViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.item_rv,
+                    parent,
+                    false
+                ))
+        } else {
+            RVViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.item_big_rv,
+                    parent,
+                    false
+                ))
+        }
     }
 
     override fun onBindViewHolder(holder: RVViewHolder, position: Int) {
