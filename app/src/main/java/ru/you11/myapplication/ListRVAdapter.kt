@@ -9,7 +9,7 @@ class ListRVAdapter: RecyclerView.Adapter<RVViewHolder>() {
 
     private var _selectedPosition = 0
     val selectedPosition: Int
-    get() = _selectedPosition
+        get() = _selectedPosition
 
     val items = ArrayList<RVClass>()
 

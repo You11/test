@@ -1,13 +1,17 @@
 package ru.you11.myapplication
 
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SimpleItemAnimator
 import kotlinx.android.synthetic.main.fragment_cycle_rv.*
+import kotlinx.android.synthetic.main.fragment_list_rv.*
 
 class CycleRVFragment : Fragment() {
 
@@ -24,22 +28,10 @@ class CycleRVFragment : Fragment() {
 
         val adapter = CycleRVAdapter()
 
-        main_rv.adapter = adapter
+        cycle_rv.adapter = adapter
         val lm = LinearLayoutManager(activity)
-        main_rv.layoutManager = lm
+        cycle_rv.layoutManager = lm
         adapter.updateData(getTestData())
-
-        main_rv.addOnScrollListener(object: RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val firstItemPosition = lm.findFirstVisibleItemPosition()
-                if (firstItemPosition != 1 && firstItemPosition % adapter.items.size == 1) {
-                    lm.scrollToPosition(1)
-                } else if (firstItemPosition == 0) {
-                    lm.scrollToPositionWithOffset(adapter.items.size, -recyclerView.computeVerticalScrollOffset())
-                }
-            }
-        })
 
         to_list_activity.setOnClickListener {
             activity?.supportFragmentManager?.beginTransaction()
@@ -47,12 +39,45 @@ class CycleRVFragment : Fragment() {
                 ?.addToBackStack(null)
                 ?.commit()
         }
+
+        (cycle_rv.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
+
+//        cycle_rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+//            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+//                super.onScrolled(recyclerView, dx, dy)
+//
+//                val child = cycle_rv.findChildViewUnder(0.0f, cycle_root.height / 2.0f) ?: return
+//                val pos = cycle_rv.getChildAdapterPosition(child)
+//
+//                adapter.setSelected(pos)
+//            }
+//        })
+
+        cycle_rv.viewTreeObserver.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                cycle_rv.viewTreeObserver.removeOnGlobalLayoutListener(this)
+            }
+        })
+
+        cycle_start_moving_button.setOnClickListener {
+            startMoving()
+        }
+    }
+
+    private fun startMoving() {
+        val adapter = cycle_rv.adapter as CycleRVAdapter
+        smoothScrollToPositionCenter(adapter.itemCount / 2)
+    }
+
+    private fun smoothScrollToPositionCenter(position: Int) {
+        cycle_rv.scrollToPosition(12)
+        cycle_rv.scrollBy(0, cycle_rv.height / 2 - cycle_rv.computeVerticalScrollRange())
     }
 
     private fun getTestData(): ArrayList<RVClass> {
         val data = ArrayList<RVClass>()
         for (el in 1..20) {
-            data.add(RVClass((el * 11111).toString()))
+            data.add(RVClass((el * 100000).toString()))
         }
         return data
     }
