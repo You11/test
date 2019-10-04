@@ -15,15 +15,4 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class RVViewHolder(override val containerView: View): RecyclerView.ViewHolder(containerView), LayoutContainer {
-
-    fun bind(item: RVClass, isSelected: Boolean = false) {
-        containerView.rv_item_name.text = item.name
-
-        if (isSelected) {
-            containerView.rv_item_name.setTextColor(Color.RED)
-        } else {
-            containerView.rv_item_name.setTextColor(Color.GRAY)
-        }
-    }
-}
+class SmallRVViewHolder(override val containerView: View): BaseRVViewHolder(containerView)

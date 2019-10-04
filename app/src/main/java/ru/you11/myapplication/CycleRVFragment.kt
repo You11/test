@@ -1,19 +1,34 @@
 package ru.you11.myapplication
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.graphics.Rect
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.ViewTreeObserver
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.*
+import android.view.animation.AccelerateInterpolator
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import kotlinx.android.synthetic.main.fragment_cycle_rv.*
 import kotlinx.android.synthetic.main.fragment_list_rv.*
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 class CycleRVFragment : Fragment() {
+
+    val handler = Handler(Looper.getMainLooper())
+    private var isManualScrollToPosition = false
+    private val animators = AnimatorSet()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        animators.interpolator = AccelerateInterpolator()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -25,53 +40,94 @@ class CycleRVFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupRV()
 
+        to_list_activity.setOnClickListener {
+            toNextFragment()
+        }
+
+        cycle_scroll_up_button.setOnTouchListener { _, motionEvent ->
+            when (motionEvent.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    startScroll(true)
+                    true
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    handler.removeCallbacksAndMessages(null)
+                    animators.cancel()
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        cycle_scroll_down_button.setOnTouchListener { _, motionEvent ->
+            when (motionEvent.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    startScroll(false)
+                    true
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    handler.removeCallbacksAndMessages(null)
+                    animators.cancel()
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        cycle_scroll_to_center_button.setOnClickListener {
+            startRVAtCenter()
+        }
+
+        cycle_scroll_to_center_first_element_button.setOnClickListener {
+
+        }
+    }
+
+    private fun setupRV() {
         val adapter = CycleRVAdapter()
-
         cycle_rv.adapter = adapter
         val lm = LinearLayoutManager(activity)
         cycle_rv.layoutManager = lm
+
         adapter.updateData(getTestData())
 
-        to_list_activity.setOnClickListener {
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.replace(R.id.fragment_container, ListRVFragment())
-                ?.addToBackStack(null)
-                ?.commit()
-        }
+        cycle_rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
 
-        (cycle_rv.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
+                val pos = findCurrentPosition() ?: return
 
-//        cycle_rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-//            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-//                super.onScrolled(recyclerView, dx, dy)
-//
-//                val child = cycle_rv.findChildViewUnder(0.0f, cycle_root.height / 2.0f) ?: return
-//                val pos = cycle_rv.getChildAdapterPosition(child)
-//
-//                adapter.setSelected(pos)
-//            }
-//        })
+                //linear lm not updating adapter so for now this kostyl will have to do
+                if (isManualScrollToPosition) {
+                    isManualScrollToPosition = false
+                    handler.post {
+                        adapter.setSelected(pos)
+                    }
+                } else {
+                    adapter.setSelected(pos)
+                }
+            }
+        })
 
         cycle_rv.viewTreeObserver.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 cycle_rv.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                startRVAtCenter()
             }
         })
 
-        cycle_start_moving_button.setOnClickListener {
-            startMoving()
-        }
+        (cycle_rv.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
     }
 
-    private fun startMoving() {
-        val adapter = cycle_rv.adapter as CycleRVAdapter
-        smoothScrollToPositionCenter(adapter.itemCount / 2)
-    }
-
-    private fun smoothScrollToPositionCenter(position: Int) {
-        cycle_rv.scrollToPosition(12)
-        cycle_rv.scrollBy(0, cycle_rv.height / 2 - cycle_rv.computeVerticalScrollRange())
+    private fun findCurrentPosition(): Int? {
+        val child = cycle_rv.findChildViewUnder(0.0f, cycle_root.height / 2.0f) ?: return null
+        return cycle_rv.getChildAdapterPosition(child)
     }
 
     private fun getTestData(): ArrayList<RVClass> {
@@ -80,5 +136,62 @@ class CycleRVFragment : Fragment() {
             data.add(RVClass((el * 100000).toString()))
         }
         return data
+    }
+
+    private fun startRVAtCenter() {
+        val itemHeight = resources.getDimension(R.dimen.cycle_rv_item_height)
+        val centerPosition = (cycle_rv.adapter?.itemCount ?: 0) / 2
+        val offset = cycle_rv.height / 2 - itemHeight.toInt() / 2
+        val lm = cycle_rv.layoutManager as LinearLayoutManager
+        isManualScrollToPosition = true
+        lm.scrollToPositionWithOffset(centerPosition, offset)
+    }
+
+    private fun startRVAtCenterFirstElement() {
+
+    }
+
+    private fun startScroll(isScrollUp: Boolean) {
+        val runnable = Runnable {
+            if (isScrollUp) {
+                setYAnim(true)
+            } else {
+                setYAnim(false)
+            }
+
+            animators.start()
+        }
+
+        smoothScrollByOnePosition(isScrollUp)
+        handler.postDelayed(runnable, 500L)
+    }
+
+    private fun smoothScrollByOnePosition(isUp: Boolean) {
+        val r = Rect()
+        cycle_root.getWindowVisibleDisplayFrame(r)
+        val y = resources.getDimension(R.dimen.cycle_rv_item_height)
+        if (isUp) {
+            cycle_rv.smoothScrollBy(0, -y.toInt())
+        } else {
+            cycle_rv.smoothScrollBy(0, y.toInt())
+        }
+    }
+
+    private fun setYAnim(isUp: Boolean) {
+        val scrollValue = if (isUp) 0 else cycle_rv.computeVerticalScrollRange()
+        animators.duration = calculateDuration(cycle_rv.scrollY, scrollValue)
+        val yAnim = ObjectAnimator.ofInt(cycle_rv, "scrollY", cycle_rv.scrollY, scrollValue)
+        animators.play(yAnim)
+    }
+
+    private fun calculateDuration(currentScroll: Int, destination: Int): Long {
+        return (sqrt(abs(currentScroll - destination).toDouble()) * 50).toLong()
+    }
+
+    private fun toNextFragment() {
+        activity?.supportFragmentManager?.beginTransaction()
+            ?.replace(R.id.fragment_container, ListRVFragment())
+            ?.addToBackStack(null)
+            ?.commit()
     }
 }

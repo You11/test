@@ -4,16 +4,14 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 
-class CycleRVAdapter : RecyclerView.Adapter<RVViewHolder>() {
+class CycleRVAdapter : RecyclerView.Adapter<SmallRVViewHolder>() {
 
-    private var _selectedPosition = 0
-    val selectedPosition: Int
-        get() = _selectedPosition
+    var selectedPosition = -1
 
     val items = ArrayList<RVClass>()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RVViewHolder {
-        return RVViewHolder(
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SmallRVViewHolder {
+        return SmallRVViewHolder(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.item_rv,
                 parent,
@@ -22,11 +20,11 @@ class CycleRVAdapter : RecyclerView.Adapter<RVViewHolder>() {
         )
     }
 
-    override fun onBindViewHolder(holder: RVViewHolder, position: Int) {
-        holder.bind(getItemAtAdapterPosition(position), _selectedPosition == position)
+    override fun onBindViewHolder(holder: SmallRVViewHolder, position: Int) {
+        holder.bind(getItemAtAdapterPosition(position), selectedPosition == position)
     }
 
-    override fun getItemCount() = Int.MAX_VALUE
+    override fun getItemCount() = 1048576
 
     fun updateData(newData: List<RVClass>) {
         items.clear()
@@ -37,9 +35,9 @@ class CycleRVAdapter : RecyclerView.Adapter<RVViewHolder>() {
     fun getItemAtAdapterPosition(position: Int) = items[position % items.size]
 
     fun setSelected(position: Int) {
-        if (position == _selectedPosition) return
-        notifyItemChanged(_selectedPosition)
+        if (position == selectedPosition) return
+        notifyItemChanged(selectedPosition)
         notifyItemChanged(position)
-        _selectedPosition = position
+        selectedPosition = position
     }
 }

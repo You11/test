@@ -6,6 +6,7 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.*
 import android.view.animation.AccelerateInterpolator
 import androidx.core.view.get
@@ -19,6 +20,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.sqrt
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.DefaultItemAnimator
+
+
 
 class ListRVFragment : Fragment() {
 
@@ -66,10 +71,20 @@ class ListRVFragment : Fragment() {
                 list_bottom_space_view.layoutParams = lpBottom
 
                 animators.interpolator = AccelerateInterpolator()
+
+                for (el in 0..adapter.itemCount) {
+                    Log.d("meow", adapter.getItemViewType(el).toString())
+                }
             }
         })
 
-        (list_rv.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
+        val animator = object : DefaultItemAnimator() {
+            override fun canReuseUpdatedViewHolder(viewHolder: RecyclerView.ViewHolder): Boolean {
+                return true
+            }
+        }
+        animator.supportsChangeAnimations = false
+        list_rv.itemAnimator = animator
 
         list_scroll.setOnScrollChangeListener { v: View?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int ->
             val childView = list_rv.findChildViewUnder(0.0f, scrollY.toFloat() + firstElementHalfHeight)
@@ -169,7 +184,7 @@ class ListRVFragment : Fragment() {
         val r = Rect()
         root.getWindowVisibleDisplayFrame(r)
         val y = list_rv.y + list_rv.getChildAt(position).y - r.height() / 2 + list_rv.getChildAt(position).height / 2 + list_some_first_view.height
-        list_scroll.smoothScrollTo(0, y.toInt())
+        list_scroll.scrollTo(0, y.toInt())
     }
 
     private fun getTestData(): ArrayList<RVClass> {
@@ -183,16 +198,6 @@ class ListRVFragment : Fragment() {
     private fun startMovingAroundList() {
         GlobalScope.launch(Dispatchers.Main) {
             moveWithDelay(1)
-            moveWithDelay(3)
-            moveWithDelay(5)
-            moveWithDelay(10)
-            moveWithDelay(0)
-            moveWithDelay(2)
-            moveWithDelay(99)
-            moveWithDelay(50)
-            moveWithDelay(97)
-            moveWithDelay(40)
-            moveWithDelay(43)
         }
     }
 }

@@ -5,7 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.random.Random
 
-class ListRVAdapter: RecyclerView.Adapter<RVViewHolder>() {
+class ListRVAdapter: RecyclerView.Adapter<BaseRVViewHolder>() {
+
+    val smallItemType = 0
+    val bigItemType = 1
 
     private var _selectedPosition = 0
     val selectedPosition: Int
@@ -13,19 +16,25 @@ class ListRVAdapter: RecyclerView.Adapter<RVViewHolder>() {
 
     val items = ArrayList<RVClass>()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RVViewHolder {
+    override fun getItemViewType(position: Int): Int {
+        val next = Random.nextInt(0, 1)
+        return if (next == 1) {
+            bigItemType
+        } else {
+            smallItemType
+        }
+    }
 
-        val rand = Random.nextBoolean()
-
-        return if (rand) {
-            RVViewHolder(
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseRVViewHolder  {
+        return if (viewType == smallItemType) {
+            SmallRVViewHolder(
                 LayoutInflater.from(parent.context).inflate(
                     R.layout.item_rv,
                     parent,
                     false
                 ))
         } else {
-            RVViewHolder(
+            BigRVViewHolder(
                 LayoutInflater.from(parent.context).inflate(
                     R.layout.item_big_rv,
                     parent,
@@ -34,7 +43,7 @@ class ListRVAdapter: RecyclerView.Adapter<RVViewHolder>() {
         }
     }
 
-    override fun onBindViewHolder(holder: RVViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: BaseRVViewHolder, position: Int) {
         holder.bind(items[position], _selectedPosition == position)
     }
 
