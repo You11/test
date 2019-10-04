@@ -1,4 +1,4 @@
-package ru.you11.myapplication
+package ru.you11.myapplication.cycle
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
@@ -6,7 +6,6 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.*
 import android.view.animation.AccelerateInterpolator
 import androidx.fragment.app.Fragment
@@ -14,7 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import kotlinx.android.synthetic.main.fragment_cycle_rv.*
-import kotlinx.android.synthetic.main.fragment_list_rv.*
+import ru.you11.myapplication.list.ListRVFragment
+import ru.you11.myapplication.R
+import ru.you11.myapplication.RVDataClass
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -130,10 +131,10 @@ class CycleRVFragment : Fragment() {
         return cycle_rv.getChildAdapterPosition(child)
     }
 
-    private fun getTestData(): ArrayList<RVClass> {
-        val data = ArrayList<RVClass>()
+    private fun getTestData(): ArrayList<RVDataClass> {
+        val data = ArrayList<RVDataClass>()
         for (el in 1..20) {
-            data.add(RVClass((el * 100000).toString()))
+            data.add(RVDataClass((el * 100000).toString()))
         }
         return data
     }
@@ -190,7 +191,10 @@ class CycleRVFragment : Fragment() {
 
     private fun toNextFragment() {
         activity?.supportFragmentManager?.beginTransaction()
-            ?.replace(R.id.fragment_container, ListRVFragment())
+            ?.replace(
+                R.id.fragment_container,
+                ListRVFragment()
+            )
             ?.addToBackStack(null)
             ?.commit()
     }

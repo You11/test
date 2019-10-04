@@ -1,4 +1,4 @@
-package ru.you11.myapplication
+package ru.you11.myapplication.list
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
@@ -12,7 +12,6 @@ import android.view.animation.AccelerateInterpolator
 import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.SimpleItemAnimator
 import kotlinx.android.synthetic.main.fragment_list_rv.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -22,18 +21,16 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.DefaultItemAnimator
-
+import ru.you11.myapplication.R
+import ru.you11.myapplication.RVDataClass
 
 
 class ListRVFragment : Fragment() {
 
+    private val handler = Handler(Looper.getMainLooper())
+
     //used for scrolling position detection
     private var firstElementHalfHeight = 0
-
-    private val animators = AnimatorSet()
-
-    private val handler = Handler(Looper.getMainLooper())
-    private var runnable: Runnable? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,12 +66,6 @@ class ListRVFragment : Fragment() {
                 val lpBottom = list_bottom_space_view.layoutParams
                 lpBottom.height = (rvRect.height() - list_rv[0].height) / 2 - list_some_last_view.height
                 list_bottom_space_view.layoutParams = lpBottom
-
-                animators.interpolator = AccelerateInterpolator()
-
-                for (el in 0..adapter.itemCount) {
-                    Log.d("meow", adapter.getItemViewType(el).toString())
-                }
             }
         })
 
@@ -107,7 +98,6 @@ class ListRVFragment : Fragment() {
 
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacksAndMessages(null)
-                    animators.cancel()
                     centerCurrentlySelectedElement()
                     true
                 }
@@ -125,7 +115,6 @@ class ListRVFragment : Fragment() {
 
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacksAndMessages(null)
-                    animators.cancel()
                     centerCurrentlySelectedElement()
                     true
                 }
@@ -136,14 +125,9 @@ class ListRVFragment : Fragment() {
     }
 
     private fun startScroll(isScrollUp: Boolean) {
-        runnable = Runnable {
-            if (isScrollUp) {
-                setYAnim(true)
-            } else {
-                setYAnim(false)
-            }
 
-            animators.start()
+        val runnable = Runnable {
+
         }
 
         val adapter = list_rv.adapter as ListRVAdapter
@@ -158,20 +142,9 @@ class ListRVFragment : Fragment() {
         handler.postDelayed(runnable, 500L)
     }
 
-    private fun setYAnim(isUp: Boolean) {
-        val scrollValue = if (isUp) 0 else list_rv.height
-        animators.duration = calculateDuration(list_scroll.scrollY, scrollValue)
-        val yAnim = ObjectAnimator.ofInt(list_scroll, "scrollY", list_scroll.scrollY, scrollValue)
-        animators.play(yAnim)
-    }
-
     private fun centerCurrentlySelectedElement() {
         val adapter = list_rv.adapter as ListRVAdapter
         smoothScrollToPositionCenter(adapter.selectedPosition)
-    }
-
-    private fun calculateDuration(currentScroll: Int, destination: Int): Long {
-        return (sqrt(abs(currentScroll - destination).toDouble()) * 50).toLong()
     }
 
     private suspend fun moveWithDelay(position: Int) {
@@ -187,10 +160,10 @@ class ListRVFragment : Fragment() {
         list_scroll.scrollTo(0, y.toInt())
     }
 
-    private fun getTestData(): ArrayList<RVClass> {
-        val data = ArrayList<RVClass>()
+    private fun getTestData(): ArrayList<RVDataClass> {
+        val data = ArrayList<RVDataClass>()
         for (el in 1..100) {
-            data.add(RVClass((el * 100000).toString()))
+            data.add(RVDataClass((el * 100000).toString()))
         }
         return data
     }

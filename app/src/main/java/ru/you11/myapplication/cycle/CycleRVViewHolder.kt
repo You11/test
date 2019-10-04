@@ -1,15 +1,16 @@
-package ru.you11.myapplication
+package ru.you11.myapplication.cycle
 
 import android.graphics.Color
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.extensions.LayoutContainer
-import kotlinx.android.synthetic.main.item_rv.view.*
+import kotlinx.android.synthetic.main.item_content.view.*
+import ru.you11.myapplication.RVDataClass
 
-abstract class BaseRVViewHolder(override val containerView: View): RecyclerView.ViewHolder(containerView),
+class CycleRVViewHolder(override val containerView: View): RecyclerView.ViewHolder(containerView),
     LayoutContainer {
 
-    fun bind(item: RVClass, isSelected: Boolean = false) {
+    fun bind(item: RVDataClass, isSelected: Boolean = false) {
         containerView.rv_item_name.text = item.name
 
         if (isSelected) {
