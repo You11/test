@@ -1,32 +1,25 @@
 package ru.you11.myapplication.list
 
-import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.*
-import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_list_rv.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.SimpleItemAnimator
-import kotlinx.android.synthetic.main.fragment_cycle_rv.*
 import ru.you11.myapplication.R
 import ru.you11.myapplication.RVDataClass
+import ru.you11.myapplication.ScrollState
 
 
 class ListRVFragment : Fragment() {
 
-    private val handler = Handler(Looper.getMainLooper())
-    private var isManualScrollToPosition = false
+    private var scrollState = ScrollState.NONE
 
-    //used for scrolling position detection
-    private var firstElementHalfHeight = 0
+    private val handler = Handler(Looper.getMainLooper())
+    private var runnable: Runnable? = null
+    private var isManualScrollToPosition = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,18 +39,7 @@ class ListRVFragment : Fragment() {
 
         adapter.updateData(getTestData())
 
-        list_rv.viewTreeObserver.addOnGlobalLayoutListener(object :
-            ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                list_rv.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                val rvRect = Rect()
-                list_rv.getWindowVisibleDisplayFrame(rvRect)
-
-                firstElementHalfHeight = list_rv[0].height / 2
-            }
-        })
-
-        (list_rv.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
+        list_rv.itemAnimator = null
 
         list_rv.addOnScrollListener(object: RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -78,7 +60,8 @@ class ListRVFragment : Fragment() {
         })
 
         list_start_moving_button.setOnClickListener {
-
+            isManualScrollToPosition = true
+            scrollAtPosition(list_position_et.text.toString().toInt())
         }
 
         list_scroll_up_button.setOnTouchListener { _, motionEvent ->
@@ -90,6 +73,8 @@ class ListRVFragment : Fragment() {
 
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacksAndMessages(null)
+                    list_rv.stopScroll()
+                    scrollToNextElement()
                     true
                 }
 
@@ -106,6 +91,8 @@ class ListRVFragment : Fragment() {
 
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacksAndMessages(null)
+                    list_rv.stopScroll()
+                    scrollToNextElement()
                     true
                 }
 
@@ -115,18 +102,20 @@ class ListRVFragment : Fragment() {
     }
 
     private fun startScroll(isScrollUp: Boolean) {
+        val maxScrollDistance = 250
+        var scrollDistance = 50
 
-        val runnable = Runnable {
-
+        runnable = Runnable {
+            if (isScrollUp) {
+                list_rv.smoothScrollBy(0, -scrollDistance)
+            } else {
+                list_rv.smoothScrollBy(0, scrollDistance)
+            }
+            if (scrollDistance < maxScrollDistance) scrollDistance += 10
+            handler.postDelayed(runnable, 100L)
         }
 
-        val adapter = list_rv.adapter as ListRVAdapter
-
-        val pos = if (isScrollUp) {
-            adapter.selectedPosition - 1
-        } else {
-            adapter.selectedPosition + 1
-        }
+        smoothScrollAtOnePosition(isScrollUp)
 
         handler.postDelayed(runnable, 500L)
     }
@@ -143,4 +132,36 @@ class ListRVFragment : Fragment() {
         }
         return data
     }
+
+    private fun smoothScrollAtOnePosition(isScrollUp: Boolean) {
+        val centerYCoordinate = getYCenterCoordinate()
+        val centerChild = list_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
+
+        if (centerYCoordinate == centerChild.y + centerChild.height / 2) {
+            val scrollDistance = resources.getDimension(R.dimen.cycle_rv_item_height).toInt()
+            if (isScrollUp)
+                list_rv.smoothScrollBy(0, -scrollDistance)
+            else
+                list_rv.smoothScrollBy(0, scrollDistance)
+        }
+
+
+    }
+
+    private fun scrollAtPosition(position: Int) {
+        val itemHeight = resources.getDimension(R.dimen.cycle_rv_item_height)
+        val offset = list_root.height / 2 - itemHeight.toInt() / 2
+        val lm = list_rv.layoutManager as LinearLayoutManager
+        lm.scrollToPositionWithOffset(position, offset)
+    }
+
+    private fun scrollToNextElement() {
+        val centerYCoordinate = getYCenterCoordinate()
+        val centerChild = list_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
+
+        val scrollDistance = centerChild.y - centerYCoordinate + centerChild.height / 2
+        list_rv.smoothScrollBy(0, scrollDistance.toInt())
+    }
+
+    private fun getYCenterCoordinate() = list_root.height / 2.0f - list_some_first_view.height
 }

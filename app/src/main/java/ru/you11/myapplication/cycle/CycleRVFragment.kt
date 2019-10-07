@@ -23,13 +23,6 @@ class CycleRVFragment : Fragment() {
 
     val handler = Handler(Looper.getMainLooper())
     private var isManualScrollToPosition = false
-    private val animators = AnimatorSet()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        animators.interpolator = AccelerateInterpolator()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,7 +49,7 @@ class CycleRVFragment : Fragment() {
 
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacksAndMessages(null)
-                    animators.cancel()
+
                     true
                 }
 
@@ -73,7 +66,7 @@ class CycleRVFragment : Fragment() {
 
                 MotionEvent.ACTION_UP -> {
                     handler.removeCallbacksAndMessages(null)
-                    animators.cancel()
+
                     true
                 }
 
@@ -155,12 +148,10 @@ class CycleRVFragment : Fragment() {
     private fun startScroll(isScrollUp: Boolean) {
         val runnable = Runnable {
             if (isScrollUp) {
-                setYAnim(true)
-            } else {
-                setYAnim(false)
-            }
 
-            animators.start()
+            } else {
+
+            }
         }
 
         smoothScrollByOnePosition(isScrollUp)
@@ -176,17 +167,6 @@ class CycleRVFragment : Fragment() {
         } else {
             cycle_rv.smoothScrollBy(0, y.toInt())
         }
-    }
-
-    private fun setYAnim(isUp: Boolean) {
-        val scrollValue = if (isUp) 0 else cycle_rv.computeVerticalScrollRange()
-        animators.duration = calculateDuration(cycle_rv.scrollY, scrollValue)
-        val yAnim = ObjectAnimator.ofInt(cycle_rv, "scrollY", cycle_rv.scrollY, scrollValue)
-        animators.play(yAnim)
-    }
-
-    private fun calculateDuration(currentScroll: Int, destination: Int): Long {
-        return (sqrt(abs(currentScroll - destination).toDouble()) * 50).toLong()
     }
 
     private fun toNextFragment() {

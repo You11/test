@@ -15,13 +15,22 @@ class ListRVPaddingViewHolder(override val containerView: View) :
 
         containerView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
-                containerView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                if (containerView.rootView.list_root != null) {
 
-                val height = (containerView.rootView.list_root.height - containerView.resources.getDimension(R.dimen.cycle_rv_item_height).toInt()) / 2 - containerView.rootView.list_some_first_view.height
+                    containerView.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
-                val lp = containerView.layoutParams
-                lp.height = height
-                containerView.layoutParams = lp
+                    val subviewsHeight = if (isTop) {
+                        containerView.rootView.list_some_first_view.height
+                    } else {
+                        containerView.rootView.list_some_last_view.height
+                    }
+
+                    val height = (containerView.rootView.list_root.height - containerView.resources.getDimension(R.dimen.cycle_rv_item_height).toInt()) / 2 - subviewsHeight
+
+                    val lp = containerView.layoutParams
+                    lp.height = height
+                    containerView.layoutParams = lp
+                }
             }
         })
     }

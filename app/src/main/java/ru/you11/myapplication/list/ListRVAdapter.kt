@@ -32,7 +32,7 @@ class ListRVAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is ListRVContentViewHolder -> {
-                holder.bind(items[position], _selectedPosition == position)
+                holder.bind(items[position.toCorrectPosition()], _selectedPosition == position)
             }
 
             is ListRVPaddingViewHolder -> {
@@ -50,10 +50,13 @@ class ListRVAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         notifyDataSetChanged()
     }
 
-    fun setSelected(position: Int) {
-        if (position == _selectedPosition) return
+    fun setSelected(newPosition: Int) {
+        val newCorrectPosition = newPosition.toCorrectPosition()
+        if (newCorrectPosition == _selectedPosition) return
         notifyItemChanged(_selectedPosition)
-        notifyItemChanged(position)
-        _selectedPosition = position
+        notifyItemChanged(newCorrectPosition)
+        _selectedPosition = newCorrectPosition
     }
+
+    private fun Int.toCorrectPosition() = this - 1
 }
