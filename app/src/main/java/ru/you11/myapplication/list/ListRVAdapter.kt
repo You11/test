@@ -30,11 +30,19 @@ class ListRVAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (holder is ListRVContentViewHolder)
-            holder.bind(items[position], _selectedPosition == position)
+        when (holder) {
+            is ListRVContentViewHolder -> {
+                holder.bind(items[position], _selectedPosition == position)
+            }
+
+            is ListRVPaddingViewHolder -> {
+                val isTop = (position == 0)
+                holder.bind(isTop)
+            }
+        }
     }
 
-    override fun getItemCount() = items.size
+    override fun getItemCount() = items.size + 2
 
     fun updateData(newData: List<RVDataClass>) {
         items.clear()
