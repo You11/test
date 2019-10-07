@@ -36,6 +36,8 @@ class CycleRVAdapter : RecyclerView.Adapter<CycleRVViewHolder>() {
         notifyDataSetChanged()
     }
 
+    fun getFirstCenterItemPosition() = itemCount / 2 - itemCount / 2 % items.size
+
     fun getItemAtAdapterPosition(position: Int) = items[position % items.size]
 
     fun setSelected(position: Int) {

@@ -67,14 +67,12 @@ class ListRVFragment : Fragment() {
         list_scroll_up_button.setOnTouchListener { _, motionEvent ->
             when (motionEvent.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    startScroll(true)
+                    onUpButtonActionDown()
                     true
                 }
 
                 MotionEvent.ACTION_UP -> {
-                    handler.removeCallbacksAndMessages(null)
-                    list_rv.stopScroll()
-                    scrollToNextElement()
+                    onActionUp()
                     true
                 }
 
@@ -85,20 +83,32 @@ class ListRVFragment : Fragment() {
         list_scroll_down_button.setOnTouchListener { _, motionEvent ->
             when (motionEvent.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    startScroll(false)
+                    onDownButtonActionDown()
                     true
                 }
 
                 MotionEvent.ACTION_UP -> {
-                    handler.removeCallbacksAndMessages(null)
-                    list_rv.stopScroll()
-                    scrollToNextElement()
+                    onActionUp()
                     true
                 }
 
                 else -> false
             }
         }
+    }
+
+    fun onActionUp() {
+        handler.removeCallbacksAndMessages(null)
+        list_rv.stopScroll()
+        scrollToNextElement()
+    }
+
+    fun onUpButtonActionDown() {
+        startScroll(true)
+    }
+
+    fun onDownButtonActionDown() {
+        startScroll(false)
     }
 
     private fun startScroll(isScrollUp: Boolean) {
@@ -144,8 +154,6 @@ class ListRVFragment : Fragment() {
             else
                 list_rv.smoothScrollBy(0, scrollDistance)
         }
-
-
     }
 
     private fun scrollAtPosition(position: Int) {
