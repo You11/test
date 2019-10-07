@@ -97,20 +97,6 @@ class ListRVFragment : Fragment() {
         }
     }
 
-    fun onActionUp() {
-        handler.removeCallbacksAndMessages(null)
-        list_rv.stopScroll()
-        scrollToNextElement()
-    }
-
-    fun onUpButtonActionDown() {
-        startScroll(true)
-    }
-
-    fun onDownButtonActionDown() {
-        startScroll(false)
-    }
-
     private fun startScroll(isScrollUp: Boolean) {
         val maxScrollDistance = 250
         var scrollDistance = 50
@@ -131,7 +117,7 @@ class ListRVFragment : Fragment() {
     }
 
     private fun findCurrentPosition(): Int? {
-        val child = list_rv.findChildViewUnder(0.0f, list_root.height / 2.0f) ?: return null
+        val child = list_rv.findChildViewUnder(0.0f, getRVYCenterCoordinate()) ?: return null
         return list_rv.getChildAdapterPosition(child)
     }
 
@@ -144,7 +130,7 @@ class ListRVFragment : Fragment() {
     }
 
     private fun smoothScrollAtOnePosition(isScrollUp: Boolean) {
-        val centerYCoordinate = getYCenterCoordinate()
+        val centerYCoordinate = getRVYCenterCoordinate()
         val centerChild = list_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
 
         if (centerYCoordinate == centerChild.y + centerChild.height / 2) {
@@ -164,12 +150,26 @@ class ListRVFragment : Fragment() {
     }
 
     private fun scrollToNextElement() {
-        val centerYCoordinate = getYCenterCoordinate()
+        val centerYCoordinate = getRVYCenterCoordinate()
         val centerChild = list_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
 
         val scrollDistance = centerChild.y - centerYCoordinate + centerChild.height / 2
         list_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
 
-    private fun getYCenterCoordinate() = list_root.height / 2.0f - list_some_first_view.height
+    private fun getRVYCenterCoordinate() = list_root.height / 2.0f - list_some_first_view.height
+
+    fun onActionUp() {
+        handler.removeCallbacksAndMessages(null)
+        list_rv.stopScroll()
+        scrollToNextElement()
+    }
+
+    fun onUpButtonActionDown() {
+        startScroll(true)
+    }
+
+    fun onDownButtonActionDown() {
+        startScroll(false)
+    }
 }

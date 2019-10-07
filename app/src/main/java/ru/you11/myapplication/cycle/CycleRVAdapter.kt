@@ -8,7 +8,7 @@ import ru.you11.myapplication.RVDataClass
 
 class CycleRVAdapter : RecyclerView.Adapter<CycleRVViewHolder>() {
 
-    private var _selectedPosition = 0
+    private var _selectedPosition = 1
     val selectedPosition: Int
         get() = _selectedPosition
 

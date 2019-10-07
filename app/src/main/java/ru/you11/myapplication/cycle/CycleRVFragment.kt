@@ -132,7 +132,7 @@ class CycleRVFragment : Fragment() {
     }
 
     private fun findCurrentPosition(): Int? {
-        val child = cycle_rv.findChildViewUnder(0.0f, cycle_root.height / 2.0f) ?: return null
+        val child = cycle_rv.findChildViewUnder(0.0f, getYCenterCoordinate()) ?: return null
         return cycle_rv.getChildAdapterPosition(child)
     }
 
@@ -147,7 +147,7 @@ class CycleRVFragment : Fragment() {
     private fun startRVAtCenter() {
         val itemHeight = resources.getDimension(R.dimen.cycle_rv_item_height)
         val centerPosition = (cycle_rv.adapter?.itemCount ?: 0) / 2
-        val offset = cycle_rv.height / 2 - itemHeight.toInt() / 2
+        val offset = cycle_root.height / 2 - itemHeight.toInt() / 2
         val lm = cycle_rv.layoutManager as LinearLayoutManager
         isManualScrollToPosition = true
         lm.scrollToPositionWithOffset(centerPosition, offset)
@@ -158,7 +158,7 @@ class CycleRVFragment : Fragment() {
         val itemHeight = resources.getDimension(R.dimen.cycle_rv_item_height)
         val adapter = cycle_rv.adapter as CycleRVAdapter
         val centerPosition = adapter.getFirstCenterItemPosition()
-        val offset = cycle_rv.height / 2 - itemHeight.toInt() / 2
+        val offset = cycle_root.height / 2 - itemHeight.toInt() / 2
         val lm = cycle_rv.layoutManager as LinearLayoutManager
         isManualScrollToPosition = true
         lm.scrollToPositionWithOffset(centerPosition, offset)
@@ -205,6 +205,8 @@ class CycleRVFragment : Fragment() {
         cycle_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
 
+    private fun getYCenterCoordinate() = cycle_root.height / 2.0f - cycle_some_first_view.height
+
     private fun toNextFragment() {
         activity?.supportFragmentManager?.beginTransaction()
             ?.replace(
@@ -214,6 +216,4 @@ class CycleRVFragment : Fragment() {
             ?.addToBackStack(null)
             ?.commit()
     }
-
-    private fun getYCenterCoordinate() = cycle_root.height / 2.0f
 }

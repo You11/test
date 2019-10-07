@@ -5,13 +5,35 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/cycle_some_first_view"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:background="#50a23243"
+        android:gravity="center"
+        android:text="top view"
+        android:textSize="32sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/cycle_rv"
         android:layout_width="200dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/cycle_some_last_view"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/cycle_some_first_view" />
+
+    <TextView
+        android:id="@+id/cycle_some_last_view"
+        android:layout_width="200dp"
+        android:layout_height="75dp"
+        android:background="#50199999"
+        android:gravity="center"
+        android:text="second view"
+        android:textSize="32sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
 
     <View
         android:layout_width="200dp"
