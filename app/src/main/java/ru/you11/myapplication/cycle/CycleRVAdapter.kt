@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import ru.you11.myapplication.R
 import ru.you11.myapplication.RVDataClass
+import ru.you11.myapplication.list.ListRVContentViewHolder
+import kotlin.random.Random
 
 class CycleRVAdapter : RecyclerView.Adapter<CycleRVViewHolder>() {
 
@@ -15,13 +17,12 @@ class CycleRVAdapter : RecyclerView.Adapter<CycleRVViewHolder>() {
     val items = ArrayList<RVDataClass>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CycleRVViewHolder {
-        return CycleRVViewHolder(
-            LayoutInflater.from(parent.context).inflate(
-                R.layout.item_content,
-                parent,
-                false
-            )
-        )
+        val rand = Random.nextBoolean()
+        return if (rand) {
+            CycleRVViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_content, parent, false))
+        } else {
+            CycleRVViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_big_content, parent, false))
+        }
     }
 
     override fun onBindViewHolder(holder: CycleRVViewHolder, position: Int) {
