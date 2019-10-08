@@ -1,5 +1,5 @@
 package ru.you11.myapplication
 
 enum class ScrollState {
-    NONE, SHORT, LONG
+    NONE, INSTANT, SHORT, LONG
 }

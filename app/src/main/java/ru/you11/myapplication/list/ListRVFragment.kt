@@ -20,6 +20,8 @@ class ListRVFragment : Fragment() {
     private var runnable: Runnable? = null
     private var isManualScrollToPosition = false
 
+    private var scrollState = ScrollState.NONE
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -101,6 +103,7 @@ class ListRVFragment : Fragment() {
         var scrollDistance = 50
 
         runnable = Runnable {
+            scrollState = ScrollState.LONG
             if (isScrollUp) {
                 list_rv.smoothScrollBy(0, -scrollDistance)
             } else {
@@ -112,20 +115,12 @@ class ListRVFragment : Fragment() {
 
         smoothScrollAtOnePosition(isScrollUp)
 
-//        handler.postDelayed(runnable, 500L)
+        handler.postDelayed(runnable, 500L)
     }
 
     private fun findCurrentPosition(): Int? {
         val child = list_rv.findChildViewUnder(0.0f, getRVYCenterCoordinate()) ?: return null
         return list_rv.getChildAdapterPosition(child)
-    }
-
-    private fun getTestData(): ArrayList<RVDataClass> {
-        val data = ArrayList<RVDataClass>()
-        for (el in 1..100) {
-            data.add(RVDataClass((el * 100000).toString()))
-        }
-        return data
     }
 
     private fun smoothScrollAtOnePosition(isScrollUp: Boolean) {
@@ -140,6 +135,7 @@ class ListRVFragment : Fragment() {
             centerChild.y - centerYCoordinate - nextChild.itemView.height + scrollYPos
         else
             centerChild.y + centerChild.height - centerYCoordinate + scrollYPos
+        scrollState = ScrollState.SHORT
         list_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
 
@@ -147,6 +143,7 @@ class ListRVFragment : Fragment() {
         val itemHeight = resources.getDimension(R.dimen.cycle_rv_item_height)
         val offset = list_root.height / 2 - list_some_first_view.height - itemHeight.toInt() / 2
         val lm = list_rv.layoutManager as LinearLayoutManager
+        scrollState = ScrollState.INSTANT
         lm.scrollToPositionWithOffset(position, offset)
     }
 
@@ -157,15 +154,20 @@ class ListRVFragment : Fragment() {
         val centerChild = list_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
 
         val scrollDistance = centerChild.y - centerYCoordinate + scrollYPos
+        scrollState = ScrollState.SHORT
         list_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
 
     private fun getRVYCenterCoordinate() = list_root.height / 2.0f - list_some_first_view.height
 
     fun onActionUp() {
-        handler.removeCallbacksAndMessages(null)
-        list_rv.stopScroll()
-        scrollToNextElement()
+        if (scrollState != ScrollState.NONE) handler.removeCallbacksAndMessages(null)
+        if (scrollState == ScrollState.LONG) {
+            list_rv.stopScroll()
+            scrollToNextElement()
+        }
+
+        scrollState = ScrollState.NONE
     }
 
     fun onUpButtonActionDown() {
@@ -174,5 +176,13 @@ class ListRVFragment : Fragment() {
 
     fun onDownButtonActionDown() {
         startScroll(false)
+    }
+
+    private fun getTestData(): ArrayList<RVDataClass> {
+        val data = ArrayList<RVDataClass>()
+        for (el in 1..100) {
+            data.add(RVDataClass((el * 100000).toString()))
+        }
+        return data
     }
 }
