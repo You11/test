@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.fragment_list_rv.*
 import ru.you11.myapplication.list.ListRVFragment
 import ru.you11.myapplication.R
 import ru.you11.myapplication.RVDataClass
+import ru.you11.myapplication.ScrollState
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -23,6 +24,8 @@ class CycleRVFragment : Fragment() {
     private val handler = Handler(Looper.getMainLooper())
     private var runnable: Runnable? = null
     private var isManualScrollToPosition = false
+
+    private var scrollState = ScrollState.NONE
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -82,9 +85,13 @@ class CycleRVFragment : Fragment() {
     }
 
     fun onActionUp() {
-        handler.removeCallbacksAndMessages(null)
-        cycle_rv.stopScroll()
-        scrollToNextElement()
+        if (scrollState != ScrollState.NONE) handler.removeCallbacksAndMessages(null)
+        if (scrollState == ScrollState.LONG) {
+            cycle_rv.stopScroll()
+            scrollToNextElement()
+        }
+
+        scrollState = ScrollState.NONE
     }
 
     fun onUpButtonActionDown() {
@@ -150,6 +157,7 @@ class CycleRVFragment : Fragment() {
         val offset = cycle_root.height / 2 - cycle_some_first_view.height - itemHeight.toInt() / 2
         val lm = cycle_rv.layoutManager as LinearLayoutManager
         isManualScrollToPosition = true
+        scrollState = ScrollState.INSTANT
         lm.scrollToPositionWithOffset(centerPosition, offset)
     }
 
@@ -160,6 +168,7 @@ class CycleRVFragment : Fragment() {
         val offset = cycle_root.height / 2 - cycle_some_first_view.height - itemHeight.toInt() / 2
         val lm = cycle_rv.layoutManager as LinearLayoutManager
         isManualScrollToPosition = true
+        scrollState = ScrollState.INSTANT
         lm.scrollToPositionWithOffset(centerPosition, offset)
     }
 
@@ -168,6 +177,7 @@ class CycleRVFragment : Fragment() {
         var scrollDistance = 50
 
         runnable = Runnable {
+            scrollState = ScrollState.LONG
             if (isScrollUp) {
                 cycle_rv.smoothScrollBy(0, -scrollDistance)
             } else {
@@ -183,23 +193,29 @@ class CycleRVFragment : Fragment() {
     }
 
     private fun smoothScrollAtOnePosition(isScrollUp: Boolean) {
+        val scrollYPos = resources.getDimension(R.dimen.cycle_rv_item_height) / 2
+
         val centerYCoordinate = getYCenterCoordinate()
         val centerChild = cycle_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
 
-        if (centerYCoordinate == centerChild.y + centerChild.height / 2) {
-            val scrollDistance = resources.getDimension(R.dimen.cycle_rv_item_height).toInt()
-            if (isScrollUp)
-                cycle_rv.smoothScrollBy(0, -scrollDistance)
-            else
-                cycle_rv.smoothScrollBy(0, scrollDistance)
-        }
+        val pos = cycle_rv.getChildAdapterPosition(centerChild) + if (isScrollUp) -1 else 1
+        val nextChild = cycle_rv.findViewHolderForAdapterPosition(pos) ?: return
+        val scrollDistance = if (isScrollUp)
+            centerChild.y - centerYCoordinate - nextChild.itemView.height + scrollYPos
+        else
+            centerChild.y + centerChild.height - centerYCoordinate + scrollYPos
+        scrollState = ScrollState.SHORT
+        cycle_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
 
     private fun scrollToNextElement() {
+        val scrollYPos = resources.getDimension(R.dimen.cycle_rv_item_height) / 2
+
         val centerYCoordinate = getYCenterCoordinate()
         val centerChild = cycle_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
 
-        val scrollDistance = centerChild.y - centerYCoordinate + centerChild.height / 2
+        val scrollDistance = centerChild.y - centerYCoordinate + scrollYPos
+        scrollState = ScrollState.SHORT
         cycle_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
 
