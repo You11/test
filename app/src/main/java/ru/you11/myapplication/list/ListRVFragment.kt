@@ -15,8 +15,6 @@ import ru.you11.myapplication.ScrollState
 
 class ListRVFragment : Fragment() {
 
-    private var scrollState = ScrollState.NONE
-
     private val handler = Handler(Looper.getMainLooper())
     private var runnable: Runnable? = null
     private var isManualScrollToPosition = false
@@ -144,7 +142,7 @@ class ListRVFragment : Fragment() {
 
     private fun scrollAtPosition(position: Int) {
         val itemHeight = resources.getDimension(R.dimen.cycle_rv_item_height)
-        val offset = list_root.height / 2 - itemHeight.toInt() / 2
+        val offset = list_root.height / 2 - list_some_first_view.height - itemHeight.toInt() / 2
         val lm = list_rv.layoutManager as LinearLayoutManager
         lm.scrollToPositionWithOffset(position, offset)
     }

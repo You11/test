@@ -8,7 +8,7 @@
     <TextView
         android:id="@+id/list_some_first_view"
         android:layout_width="200dp"
-        android:layout_height="70dp"
+        android:layout_height="137dp"
         android:background="#50a23243"
         android:gravity="center"
         android:text="top view"

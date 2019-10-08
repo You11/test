@@ -51,11 +51,10 @@ class ListRVAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     fun setSelected(newPosition: Int) {
-        val newCorrectPosition = newPosition.toCorrectPosition()
-        if (newCorrectPosition == _selectedPosition) return
+        if (newPosition == _selectedPosition) return
         notifyItemChanged(_selectedPosition)
-        notifyItemChanged(newCorrectPosition)
-        _selectedPosition = newCorrectPosition
+        notifyItemChanged(newPosition)
+        _selectedPosition = newPosition
     }
 
     private fun Int.toCorrectPosition() = this - 1
