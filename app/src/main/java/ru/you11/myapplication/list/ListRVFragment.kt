@@ -99,23 +99,25 @@ class ListRVFragment : Fragment() {
     }
 
     private fun startScroll(isScrollUp: Boolean) {
-        val maxScrollDistance = 250
-        var scrollDistance = 50
+        if (scrollState == ScrollState.NONE) {
+            val maxScrollDistance = 250
+            var scrollDistance = 50
 
-        runnable = Runnable {
-            scrollState = ScrollState.LONG
-            if (isScrollUp) {
-                list_rv.smoothScrollBy(0, -scrollDistance)
-            } else {
-                list_rv.smoothScrollBy(0, scrollDistance)
+            runnable = Runnable {
+                scrollState = ScrollState.LONG
+                if (isScrollUp) {
+                    list_rv.smoothScrollBy(0, -scrollDistance)
+                } else {
+                    list_rv.smoothScrollBy(0, scrollDistance)
+                }
+                if (scrollDistance < maxScrollDistance) scrollDistance += 10
+                handler.postDelayed(runnable, 100L)
             }
-            if (scrollDistance < maxScrollDistance) scrollDistance += 10
-            handler.postDelayed(runnable, 100L)
+
+            smoothScrollAtOnePosition(isScrollUp)
+
+            handler.postDelayed(runnable, 500L)
         }
-
-        smoothScrollAtOnePosition(isScrollUp)
-
-        handler.postDelayed(runnable, 500L)
     }
 
     private fun findCurrentPosition(): Int? {
