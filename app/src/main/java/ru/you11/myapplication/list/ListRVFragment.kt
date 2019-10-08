@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_list_rv.*
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.android.synthetic.main.fragment_cycle_rv.*
 import ru.you11.myapplication.R
 import ru.you11.myapplication.RVDataClass
 import ru.you11.myapplication.ScrollState
@@ -21,6 +22,8 @@ class ListRVFragment : Fragment() {
     private var isManualScrollToPosition = false
 
     private var scrollState = ScrollState.NONE
+
+    private val yRVCenterCoordinate by lazy { list_root.height / 2.0f - list_some_first_view.height }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -100,8 +103,8 @@ class ListRVFragment : Fragment() {
 
     private fun startScroll(isScrollUp: Boolean) {
         if (scrollState == ScrollState.NONE) {
-            val maxScrollDistance = 250
-            var scrollDistance = 50
+            val maxScrollDistance = 200
+            var scrollDistance = 40
 
             runnable = Runnable {
                 scrollState = ScrollState.LONG
@@ -110,7 +113,7 @@ class ListRVFragment : Fragment() {
                 } else {
                     list_rv.smoothScrollBy(0, scrollDistance)
                 }
-                if (scrollDistance < maxScrollDistance) scrollDistance += 10
+                if (scrollDistance < maxScrollDistance) scrollDistance += 8
                 handler.postDelayed(runnable, 100L)
             }
 
@@ -121,22 +124,21 @@ class ListRVFragment : Fragment() {
     }
 
     private fun findCurrentPosition(): Int? {
-        val child = list_rv.findChildViewUnder(0.0f, getRVYCenterCoordinate()) ?: return null
+        val child = list_rv.findChildViewUnder(0.0f, yRVCenterCoordinate) ?: return null
         return list_rv.getChildAdapterPosition(child)
     }
 
     private fun smoothScrollAtOnePosition(isScrollUp: Boolean) {
         val scrollYPos = resources.getDimension(R.dimen.cycle_rv_item_height) / 2
 
-        val centerYCoordinate = getRVYCenterCoordinate()
-        val centerChild = list_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
+        val centerChild = list_rv.findChildViewUnder(0.0f, yRVCenterCoordinate) ?: return
 
         val pos = list_rv.getChildAdapterPosition(centerChild) + if (isScrollUp) -1 else 1
         val nextChild = list_rv.findViewHolderForAdapterPosition(pos) ?: return
         val scrollDistance = if (isScrollUp)
-            centerChild.y - centerYCoordinate - nextChild.itemView.height + scrollYPos
+            centerChild.y - yRVCenterCoordinate - nextChild.itemView.height + scrollYPos
         else
-            centerChild.y + centerChild.height - centerYCoordinate + scrollYPos
+            centerChild.y + centerChild.height - yRVCenterCoordinate + scrollYPos
         scrollState = ScrollState.SHORT
         list_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
@@ -152,15 +154,12 @@ class ListRVFragment : Fragment() {
     private fun scrollToNextElement() {
         val scrollYPos = resources.getDimension(R.dimen.cycle_rv_item_height) / 2
 
-        val centerYCoordinate = getRVYCenterCoordinate()
-        val centerChild = list_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
+        val centerChild = list_rv.findChildViewUnder(0.0f, yRVCenterCoordinate) ?: return
 
-        val scrollDistance = centerChild.y - centerYCoordinate + scrollYPos
+        val scrollDistance = centerChild.y - yRVCenterCoordinate + scrollYPos
         scrollState = ScrollState.SHORT
         list_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
-
-    private fun getRVYCenterCoordinate() = list_root.height / 2.0f - list_some_first_view.height
 
     fun onActionUp() {
         if (scrollState != ScrollState.NONE) handler.removeCallbacksAndMessages(null)
