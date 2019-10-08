@@ -147,22 +147,20 @@ class CycleRVFragment : Fragment() {
     private fun startRVAtCenter() {
         val itemHeight = resources.getDimension(R.dimen.cycle_rv_item_height)
         val centerPosition = (cycle_rv.adapter?.itemCount ?: 0) / 2
-        val offset = cycle_root.height / 2 - itemHeight.toInt() / 2
+        val offset = cycle_root.height / 2 - cycle_some_first_view.height - itemHeight.toInt() / 2
         val lm = cycle_rv.layoutManager as LinearLayoutManager
         isManualScrollToPosition = true
         lm.scrollToPositionWithOffset(centerPosition, offset)
-        Log.d("meow", "centerFirst = $centerPosition")
     }
 
     private fun startRVAtCenterFirstElement() {
         val itemHeight = resources.getDimension(R.dimen.cycle_rv_item_height)
         val adapter = cycle_rv.adapter as CycleRVAdapter
         val centerPosition = adapter.getFirstCenterItemPosition()
-        val offset = cycle_root.height / 2 - itemHeight.toInt() / 2
+        val offset = cycle_root.height / 2 - cycle_some_first_view.height - itemHeight.toInt() / 2
         val lm = cycle_rv.layoutManager as LinearLayoutManager
         isManualScrollToPosition = true
         lm.scrollToPositionWithOffset(centerPosition, offset)
-        Log.d("meow", "centerFirst = $centerPosition")
     }
 
     private fun startScroll(isScrollUp: Boolean) {
