@@ -3,6 +3,7 @@ package ru.you11.myapplication.list
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -111,7 +112,7 @@ class ListRVFragment : Fragment() {
 
         smoothScrollAtOnePosition(isScrollUp)
 
-        handler.postDelayed(runnable, 500L)
+//        handler.postDelayed(runnable, 500L)
     }
 
     private fun findCurrentPosition(): Int? {
@@ -128,16 +129,18 @@ class ListRVFragment : Fragment() {
     }
 
     private fun smoothScrollAtOnePosition(isScrollUp: Boolean) {
+        val scrollYPos = resources.getDimension(R.dimen.cycle_rv_item_height) / 2
+
         val centerYCoordinate = getRVYCenterCoordinate()
         val centerChild = list_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
 
-        if (centerYCoordinate == centerChild.y + centerChild.height / 2) {
-            val scrollDistance = resources.getDimension(R.dimen.cycle_rv_item_height).toInt()
-            if (isScrollUp)
-                list_rv.smoothScrollBy(0, -scrollDistance)
-            else
-                list_rv.smoothScrollBy(0, scrollDistance)
-        }
+        val pos = list_rv.getChildAdapterPosition(centerChild) + if (isScrollUp) -1 else 1
+        val nextChild = list_rv.findViewHolderForAdapterPosition(pos) ?: return
+        val scrollDistance = if (isScrollUp)
+            centerChild.y - centerYCoordinate - nextChild.itemView.height + scrollYPos
+        else
+            centerChild.y + centerChild.height - centerYCoordinate + scrollYPos
+        list_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
 
     private fun scrollAtPosition(position: Int) {
@@ -148,10 +151,12 @@ class ListRVFragment : Fragment() {
     }
 
     private fun scrollToNextElement() {
+        val scrollYPos = resources.getDimension(R.dimen.cycle_rv_item_height) / 2
+
         val centerYCoordinate = getRVYCenterCoordinate()
         val centerChild = list_rv.findChildViewUnder(0.0f, centerYCoordinate) ?: return
 
-        val scrollDistance = centerChild.y - centerYCoordinate + centerChild.height / 2
+        val scrollDistance = centerChild.y - centerYCoordinate + scrollYPos
         list_rv.smoothScrollBy(0, scrollDistance.toInt())
     }
 

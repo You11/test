@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import ru.you11.myapplication.R
 import ru.you11.myapplication.RVDataClass
+import kotlin.random.Random
 
 class ListRVAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -25,7 +26,13 @@ class ListRVAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         return if (viewType == 0) {
             ListRVPaddingViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_padding, parent, false))
         } else {
-            ListRVContentViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_content, parent, false))
+            val rand = Random.nextBoolean()
+            if (rand) {
+                ListRVContentViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_content, parent, false))
+            } else {
+                ListRVContentViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_big_content, parent, false))
+            }
+
         }
     }
 

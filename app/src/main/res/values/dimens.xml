@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="cycle_rv_item_height">50dp</dimen>
+    <dimen name="cycle_rv_big_item_height">113dp</dimen>
 </resources>
